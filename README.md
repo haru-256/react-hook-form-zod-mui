@@ -2,6 +2,12 @@
 
 [React-Hook-Form](https://react-hook-form.com/) と [Zod](https://github.com/colinhacks/zod), [MUI](https://mui.com/) を用いたフォームの作成。特に、一つ前の選択肢に応じて、その後のselect formの選択肢が動的に変化するフォームの作成。
 
+## Install
+
+```sh
+npm install --include=dev
+```
+
 ## Getting Started
 
 First, run the development server:
