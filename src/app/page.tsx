@@ -1,5 +1,5 @@
 import { Box } from "@mui/material";
-import FormGroup from "@/components/FormGroup";
+import Form from "@/components/Form";
 
 export default function Page() {
   return (
@@ -11,7 +11,7 @@ export default function Page() {
         height: "100vh",
       }}
     >
-      <FormGroup />
+      <Form />
     </Box>
   );
 }
