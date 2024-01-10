@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import React from "react";
-import { useController, UseControllerProps } from "react-hook-form";
-import { Select, MenuItem, FormControl, InputLabel } from "@mui/material";
-import { type FormType } from "@/schema/form";
+import React from 'react';
+import { useController, UseControllerProps } from 'react-hook-form';
+import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import { type FormType } from '@/schema/form';
 
 type SelectFieldProps = UseControllerProps<FormType> & {
   label: string;
