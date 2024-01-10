@@ -7,9 +7,16 @@ import {
   useWatch,
   useFormContext,
 } from 'react-hook-form';
-import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import {
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  FormHelperText,
+} from '@mui/material';
 import { type FormType } from '@/schema/form';
 import { shallowEqualArrays } from '@/lib';
+import { AxiosError } from 'axios';
 
 type SelectFieldProps<T> = UseControllerProps<FormType> & {
   label: string;
@@ -48,21 +55,32 @@ export default function SelectFieldDynamicOptions<T>({
   const { setValue } = useFormContext();
   const watchedValues = useWatch({ name: watchedNames });
   const version = useVersion(watchedValues);
+  const [error, setError] = React.useState<{ message: string | null }>({
+    message: null,
+  });
 
   const defaultOptions = [{ label: 'No Items', value: '' }];
   const [options, setOptions] =
     React.useState<{ label: string; value: string }[]>(defaultOptions);
 
   React.useEffect(() => {
-    setValue(props.name, '');
+    let ignore = false;
     getOptions(watchedValues)
       .then((options) => {
-        setOptions(options);
+        if (!ignore) {
+          setValue(props.name, '');
+          setOptions(options);
+          setError({ message: null });
+        }
       })
-      // FIXME: Error handling
-      .catch((e) => {
-        console.error(e);
+      .catch((e: AxiosError) => {
+        if (e.response) {
+          setError({ message: e.response.statusText });
+        }
       });
+    return () => {
+      ignore = true;
+    };
   }, [version]); // watchedValuesに応じてoptionsを更新する。watchedValuesが配列のため、custom hookで変更有無を判定する。他にも、本Componentではoptionをpropsで受け取り、Parent ComponentでwatchedValues をもとにReact.useMemoでoptionsをmemo & 更新する方法もある。useMemoを使うのはParent Componentでもつ他のComponentの再レンでリングを防ぐため
   // more info: https://github.com/facebook/react/issues/14476#issuecomment-722109683
 
@@ -76,6 +94,11 @@ export default function SelectFieldDynamicOptions<T>({
           </MenuItem>
         ))}
       </Select>
+      {error.message && (
+        <FormHelperText error required>
+          {error.message}
+        </FormHelperText>
+      )}
     </FormControl>
   );
 }

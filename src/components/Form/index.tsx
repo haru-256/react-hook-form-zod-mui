@@ -11,7 +11,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import axios from 'axios';
 
 type RepositoryResponse = {
-  name: string;
+  repository: string;
 }[];
 
 async function getRepositoryOptions(
@@ -23,7 +23,7 @@ async function getRepositoryOptions(
     return defaultOptions;
   }
   const res = await axios.get<RepositoryResponse>(
-    `https://api.github.com/users/${user}/repos`
+    `api/repository?user=${user}`
   );
   if (res.status !== 200) {
     return defaultOptions;
@@ -33,13 +33,11 @@ async function getRepositoryOptions(
   if (data.length === 0) {
     return defaultOptions;
   }
-  return data.map((d) => ({ label: d.name, value: d.name }));
+  return data.map((d) => ({ label: d.repository, value: d.repository }));
 }
 
 type FileResponse = {
-  tree: {
-    path: string;
-  }[];
+  filepath: string[];
 };
 async function getFileOptions(
   watchedValues: string[]
@@ -50,17 +48,17 @@ async function getFileOptions(
     return defaultOptions;
   }
   const res = await axios.get<FileResponse>(
-    `https://api.github.com/repos/${user}/${repository}/git/trees/main`
+    `api/file?repository=${repository}`
   );
   if (res.status !== 200) {
     return defaultOptions;
   }
 
-  const tree = res.data.tree;
-  if (tree.length === 0) {
+  const filepaths = res.data.filepath;
+  if (filepaths.length === 0) {
     return defaultOptions;
   }
-  return tree.map((t) => ({ label: t.path, value: t.path }));
+  return filepaths.map((filepath) => ({ label: filepath, value: filepath }));
 }
 
 let renderCount = 0;
