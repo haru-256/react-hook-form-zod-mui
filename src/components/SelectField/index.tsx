@@ -8,6 +8,7 @@ import {
   FormControl,
   InputLabel,
   SelectChangeEvent,
+  FormHelperText,
 } from '@mui/material';
 import { type FormType } from '@/schema/form';
 
@@ -16,6 +17,7 @@ type SelectFieldProps = UseControllerProps<FormType> & {
   options: { label: string; value: string }[];
   required?: boolean;
   initValue?: boolean;
+  errorMessage?: string;
   onChangePre?: (e: SelectChangeEvent<string>) => void;
 };
 
@@ -24,6 +26,7 @@ export default function SelectField({
   required,
   options,
   initValue,
+  errorMessage,
   ...props
 }: SelectFieldProps) {
   const { field } = useController(props);
@@ -47,6 +50,7 @@ export default function SelectField({
           </MenuItem>
         ))}
       </Select>
+      {errorMessage && <FormHelperText error>{errorMessage}</FormHelperText>}
     </FormControl>
   );
 }

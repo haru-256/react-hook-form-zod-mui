@@ -7,7 +7,7 @@ import { type FormType } from '@/schema/form';
 import TextField from '@/components/TextFiled';
 import { formSchema } from '@/schema/form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import useSWR from 'swr';
 import SelectField from '@/components/SelectField';
 
@@ -17,23 +17,23 @@ type RepositoryResponse = {
 
 function useRepositoryOptions(user: string) {
   const defaultOptions = [{ label: 'No Items', value: '' }];
-  const { data, error, isLoading } = useSWR(
-    ['/api/repository', user],
-    async ([url, user]) => {
-      if (!user) {
-        return defaultOptions;
-      }
-      const res = await axios.get<RepositoryResponse>(`${url}?user=${user}`);
-      if (res.status !== 200) {
-        return defaultOptions;
-      }
-      const data = res.data;
-      if (data.length === 0) {
-        return defaultOptions;
-      }
-      return data.map((d) => ({ label: d.repository, value: d.repository }));
+  const { data, error, isLoading } = useSWR<
+    { label: string; value: string }[],
+    AxiosError
+  >(['/api/repository', user], async ([url, user]) => {
+    if (!user) {
+      return defaultOptions;
     }
-  );
+    const res = await axios.get<RepositoryResponse>(`${url}?user=${user}`);
+    if (res.status !== 200) {
+      return defaultOptions;
+    }
+    const data = res.data;
+    if (data.length === 0) {
+      return defaultOptions;
+    }
+    return data.map((d) => ({ label: d.repository, value: d.repository }));
+  });
 
   return { options: data ? data : defaultOptions, error, isLoading };
 }
@@ -135,6 +135,7 @@ export default function Form() {
             onChangePre={(e) => {
               useFormMethod.setValue('file', '');
             }}
+            errorMessage={repository.error?.message}
           />
           {/* NOTE: Repository フィールドの選択の際に再レンダリングされないようにmemo化を実施 */}
           <SelectField
