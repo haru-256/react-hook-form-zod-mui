@@ -8,14 +8,28 @@ import { type FormType } from '@/schema/form';
 export default function TextField({
   label,
   required,
+  onChangePre,
   ...props
 }: UseControllerProps<FormType> & {
   label: string;
   required?: boolean;
+  onChangePre?: (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => void;
 }) {
   const { field } = useController(props);
 
+  console.log(`SelectField: ${label} re-Render!!`);
+
   return (
-    <MUITextField {...field} label={label} required={required ? true : false} />
+    <MUITextField
+      {...field}
+      label={label}
+      required={required ? true : false}
+      onChange={(e) => {
+        onChangePre && onChangePre(e);
+        field.onChange(e);
+      }}
+    />
   );
 }

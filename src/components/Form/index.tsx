@@ -4,66 +4,72 @@ import React from 'react';
 import { useForm, SubmitHandler, FormProvider } from 'react-hook-form';
 import { Box, Button, Typography } from '@mui/material';
 import { type FormType } from '@/schema/form';
-import SelectFieldDynamicOptions from '@/components/SelectFieldDynamicOptions';
 import TextField from '@/components/TextFiled';
 import { formSchema } from '@/schema/form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import axios from 'axios';
+import useSWR from 'swr';
+import SelectField from '@/components/SelectField';
 
 type RepositoryResponse = {
   repository: string;
 }[];
 
-async function getRepositoryOptions(
-  watchedValues: (string | null)[]
-): Promise<{ label: string; value: string }[]> {
-  const user = watchedValues[0];
+function useRepositoryOptions(user: string) {
   const defaultOptions = [{ label: 'No Items', value: '' }];
-  if (!user) {
-    return defaultOptions;
-  }
-  const res = await axios.get<RepositoryResponse>(
-    `api/repository?user=${user}`
+  const { data, error, isLoading } = useSWR(
+    ['/api/repository', user],
+    async ([url, user]) => {
+      if (!user) {
+        return defaultOptions;
+      }
+      const res = await axios.get<RepositoryResponse>(`${url}?user=${user}`);
+      if (res.status !== 200) {
+        return defaultOptions;
+      }
+      const data = res.data;
+      if (data.length === 0) {
+        return defaultOptions;
+      }
+      return data.map((d) => ({ label: d.repository, value: d.repository }));
+    }
   );
-  if (res.status !== 200) {
-    return defaultOptions;
-  }
 
-  const data = res.data;
-  if (data.length === 0) {
-    return defaultOptions;
-  }
-  return data.map((d) => ({ label: d.repository, value: d.repository }));
+  return { options: data ? data : defaultOptions, error, isLoading };
 }
 
 type FileResponse = {
-  filepath: string[];
-};
-async function getFileOptions(
-  watchedValues: string[]
-): Promise<{ label: string; value: string }[]> {
-  const [user, repository] = watchedValues;
-  const defaultOptions = [{ label: 'No Items', value: '' }];
-  if (!user || !repository) {
-    return defaultOptions;
-  }
-  const res = await axios.get<FileResponse>(
-    `api/file?repository=${repository}`
-  );
-  if (res.status !== 200) {
-    return defaultOptions;
-  }
+  filepath: string;
+}[];
 
-  const filepaths = res.data.filepath;
-  if (filepaths.length === 0) {
-    return defaultOptions;
-  }
-  return filepaths.map((filepath) => ({ label: filepath, value: filepath }));
+function useFileOptions(repository: string) {
+  const defaultOptions = [{ label: 'No Items', value: '' }];
+  const { data, error, isLoading } = useSWR(
+    ['/api/file', repository],
+    async ([url, repository]) => {
+      if (!repository) {
+        return defaultOptions;
+      }
+      const res = await axios.get<FileResponse>(
+        `${url}?repository=${repository}`
+      );
+      if (res.status !== 200) {
+        return defaultOptions;
+      }
+      const data = res.data;
+      if (data.length === 0) {
+        return defaultOptions;
+      }
+      return data.map((d) => ({ label: d.filepath, value: d.filepath }));
+    }
+  );
+
+  return { options: data ? data : defaultOptions, error, isLoading };
 }
 
 let renderCount = 0;
 
-export default function FormGroup() {
+export default function Form() {
   const useFormMethod = useForm<FormType>({
     defaultValues: {
       user: '',
@@ -86,7 +92,10 @@ export default function FormGroup() {
     }
   };
 
-  console.log('renderCount', renderCount++);
+  const repository = useRepositoryOptions(useFormMethod.watch('user'));
+  const file = useFileOptions(useFormMethod.watch('repository'));
+
+  console.log('Form renderCount', renderCount++);
 
   return (
     <>
@@ -111,21 +120,27 @@ export default function FormGroup() {
             required
             control={useFormMethod.control}
             name="user"
+            onChangePre={(e) => {
+              useFormMethod.setValue('repository', '');
+              useFormMethod.setValue('file', '');
+            }}
           />
-          <SelectFieldDynamicOptions<string>
+          {/* NOTE: File フィールドの選択の際に再レンダリングされないようにmemo化を実施 */}
+          <SelectField
             label="Repository"
             required
-            watchedNames={['user']}
-            getOptions={getRepositoryOptions}
+            options={repository.options}
             control={useFormMethod.control}
             name="repository"
+            onChangePre={(e) => {
+              useFormMethod.setValue('file', '');
+            }}
           />
-          <SelectFieldDynamicOptions<string>
+          {/* NOTE: Repository フィールドの選択の際に再レンダリングされないようにmemo化を実施 */}
+          <SelectField
             label="File"
             required
-            // FIXME: この引数の順番とgetOptionsの引数の順番は同期している必要がある
-            watchedNames={['user', 'repository']}
-            getOptions={getFileOptions}
+            options={file.options}
             control={useFormMethod.control}
             name="file"
           />
