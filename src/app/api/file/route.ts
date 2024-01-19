@@ -13,21 +13,25 @@ export async function GET(request: NextRequest) {
   }
   switch (repository) {
     case 'A-hoge':
-      return NextResponse.json({
-        filepath: ['A-hoge.ts', 'A-hoge.tsx'],
-      });
+      return NextResponse.json([
+        { filepath: 'A-hoge.ts' },
+        { filepath: 'A-hoge.tsx' },
+      ]);
     case 'A-fuga':
-      return NextResponse.json({
-        filepath: ['A-fuga.ts', 'A-fuga.tsx'],
-      });
+      return NextResponse.json([
+        { filepath: 'A-fuga.ts' },
+        { filepath: 'A-fuga.tsx' },
+      ]);
     case 'B-hoge':
-      return NextResponse.json({
-        filepath: ['B-hoge.ts', 'B-hoge.tsx'],
-      });
+      return NextResponse.json([
+        { filepath: 'B-hoge.ts' },
+        { filepath: 'B-hoge.tsx' },
+      ]);
     case 'B-fuga':
-      return NextResponse.json({
-        filepath: ['B-fuga.ts', 'B-fuga.tsx'],
-      });
+      return NextResponse.json([
+        { filepath: 'B-fuga.ts' },
+        { filepath: 'B-fuga.tsx' },
+      ]);
     default:
       return NextResponse.json(
         { error: 'repository not found' },
