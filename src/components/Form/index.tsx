@@ -7,65 +7,8 @@ import { type FormType } from '@/schema/form';
 import TextField from '@/components/TextFiled';
 import { formSchema } from '@/schema/form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import axios, { AxiosError } from 'axios';
-import useSWR from 'swr';
 import SelectField from '@/components/SelectField';
-
-type RepositoryResponse = {
-  repository: string;
-}[];
-
-function useRepositoryOptions(user: string) {
-  const defaultOptions = [{ label: 'No Items', value: '' }];
-  const { data, error, isLoading } = useSWR<
-    { label: string; value: string }[],
-    AxiosError
-  >(['/api/repository', user], async ([url, user]) => {
-    if (!user) {
-      return defaultOptions;
-    }
-    const res = await axios.get<RepositoryResponse>(`${url}?user=${user}`);
-    if (res.status !== 200) {
-      return defaultOptions;
-    }
-    const data = res.data;
-    if (data.length === 0) {
-      return defaultOptions;
-    }
-    return data.map((d) => ({ label: d.repository, value: d.repository }));
-  });
-
-  return { options: data ? data : defaultOptions, error, isLoading };
-}
-
-type FileResponse = {
-  filepath: string;
-}[];
-
-function useFileOptions(repository: string) {
-  const defaultOptions = [{ label: 'No Items', value: '' }];
-  const { data, error, isLoading } = useSWR(
-    ['/api/file', repository],
-    async ([url, repository]) => {
-      if (!repository) {
-        return defaultOptions;
-      }
-      const res = await axios.get<FileResponse>(
-        `${url}?repository=${repository}`
-      );
-      if (res.status !== 200) {
-        return defaultOptions;
-      }
-      const data = res.data;
-      if (data.length === 0) {
-        return defaultOptions;
-      }
-      return data.map((d) => ({ label: d.filepath, value: d.filepath }));
-    }
-  );
-
-  return { options: data ? data : defaultOptions, error, isLoading };
-}
+import { useRepositoryOptions, useFileOptions } from '@/lib';
 
 let renderCount = 0;
 

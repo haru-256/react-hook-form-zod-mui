@@ -30,9 +30,6 @@ export default function SelectField({
   ...props
 }: SelectFieldProps) {
   const { field } = useController(props);
-
-  console.log(`SelectField: ${label} re-Render!!`);
-
   return (
     <FormControl fullWidth required={required ? true : false}>
       <InputLabel>{label}</InputLabel>
