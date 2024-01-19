@@ -34,24 +34,20 @@ export function useRepositoryOptions(user: string) {
   const { data, error, isLoading } = useSWR<
     { label: string; value: string }[],
     AxiosError
-  >(
-    ['/api/repository', user],
-    async ([url, user]) => {
-      if (!user) {
-        return defaultOptions;
-      }
-      const res = await axios.get<RepositoryResponse>(`${url}?user=${user}`);
-      if (res.status !== 200) {
-        return defaultOptions;
-      }
-      const data = res.data;
-      if (data.length === 0) {
-        return defaultOptions;
-      }
-      return data.map((d) => ({ label: d.repository, value: d.repository }));
-    },
-    { keepPreviousData: true }
-  );
+  >(['/api/repository', user], async ([url, user]) => {
+    if (!user) {
+      return defaultOptions;
+    }
+    const res = await axios.get<RepositoryResponse>(`${url}?user=${user}`);
+    if (res.status !== 200) {
+      return defaultOptions;
+    }
+    const data = res.data;
+    if (data.length === 0) {
+      return defaultOptions;
+    }
+    return data.map((d) => ({ label: d.repository, value: d.repository }));
+  });
 
   return { options: data ? data : defaultOptions, error, isLoading };
 }
@@ -79,8 +75,7 @@ export function useFileOptions(repository: string) {
         return defaultOptions;
       }
       return data.map((d) => ({ label: d.filepath, value: d.filepath }));
-    },
-    { keepPreviousData: true }
+    }
   );
 
   return { options: data ? data : defaultOptions, error, isLoading };
